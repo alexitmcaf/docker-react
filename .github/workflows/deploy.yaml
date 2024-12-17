@@ -40,7 +40,7 @@ jobs:
 
       - name: Deploy to Azure Container Apps
         run: |
-          echo "Deploying to Azure Container Apps (Recreate)"
+          echo "Deploying to Azure Container Apps"
           az containerapp create \
             --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
