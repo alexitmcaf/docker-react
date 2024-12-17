@@ -44,6 +44,7 @@ jobs:
           az containerapp create \
             --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --environment <ENVIRONMENT_NAME> \
             --image alexitmcaf/react-test:build-${{ github.sha }} \
             --registry-server index.docker.io \
             --registry-username ${{ secrets.DOCKER_USERNAME }} \
