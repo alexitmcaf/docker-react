@@ -20,18 +20,18 @@ jobs:
       - name: Build Docker Image
         run: |
           echo "Building Docker Image"
-          docker build -t cygnetops/react-test:latest -t cygnetops/react-test:build-${{ github.sha }} -f Dockerfile.dev .
+          docker build -t alexitmcaf/react-test:latest -t alexitmcaf/react-test:build-${{ github.sha }} -f Dockerfile.dev .
 
       - name: Run Tests
         run: |
           echo "Running Tests"
-          docker run -e CI=true cygnetops/react-test:latest npm test
+          docker run -e CI=true alexitmcaf/react-test:latest npm test
 
       - name: Push Docker Images to Docker Hub
         run: |
           echo "Pushing Docker Images to Docker Hub"
-          docker push cygnetops/react-test:latest
-          docker push cygnetops/react-test:build-${{ github.sha }}
+          docker push alexitmcaf/react-test:latest
+          docker push alexitmcaf/react-test:build-${{ github.sha }}
 
       - name: Azure Login
         run: |
@@ -44,7 +44,7 @@ jobs:
           az containerapp update \
             --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --image cygnetops/react-test:build-${{ github.sha }} \
+            --image alexitmcaf/react-test:build-${{ github.sha }} \
             --registry-login-server index.docker.io \
             --registry-username ${{ secrets.DOCKER_USERNAME }} \
             --registry-password ${{ secrets.DOCKER_ACCESS_TOKEN }}
@@ -52,4 +52,4 @@ jobs:
       - name: Verify Deployment
         run: |
           echo "Deployment completed. Check Azure Portal for application status."
-          echo "Image deployed: cygnetops/react-test:build-${{ github.sha }}"
+          echo "Image deployed: alexitmcaf/react-test:build-${{ github.sha }}"
