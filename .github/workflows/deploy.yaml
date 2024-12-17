@@ -1,29 +1,50 @@
 name: Deploy Frontend
+
 on:
   push:
     branches:
       - master
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_ACCESS_TOKEN }}
-      - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
-      - run: docker run -e CI=true cygnetops/react-test npm test
-      - name: Push Docker Image to Docker Hub
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Docker Login
         run: |
-          docker tag cygnetops/react-test cygnetops/react-test:latest
+          echo "Logging into Docker Hub"
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+      - name: Build Docker Image
+        run: |
+          echo "Building Docker Image"
+          docker build -t cygnetops/react-test:latest -t cygnetops/react-test:build-${{ github.sha }} -f Dockerfile.dev .
+
+      - name: Run Tests
+        run: |
+          echo "Running Tests"
+          docker run -e CI=true cygnetops/react-test:latest npm test
+
+      - name: Push Docker Images to Docker Hub
+        run: |
+          echo "Pushing Docker Images to Docker Hub"
           docker push cygnetops/react-test:latest
+          docker push cygnetops/react-test:build-${{ github.sha }}
+
+      - name: Azure Login
+        run: |
+          echo "Logging into Azure"
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Deploy to Azure Container Apps
         run: |
-          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          echo "Deploying to Azure Container Apps"
           az containerapp update \
             --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --image cygnetops/react-test:latest \
+            --image cygnetops/react-test:build-${{ github.sha }} \
             --registry-login-server index.docker.io \
             --registry-username ${{ secrets.DOCKER_USERNAME }} \
             --registry-password ${{ secrets.DOCKER_ACCESS_TOKEN }}
@@ -31,3 +52,4 @@ jobs:
       - name: Verify Deployment
         run: |
           echo "Deployment completed. Check Azure Portal for application status."
+          echo "Image deployed: cygnetops/react-test:build-${{ github.sha }}"
