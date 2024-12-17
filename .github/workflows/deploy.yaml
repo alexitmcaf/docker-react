@@ -40,12 +40,12 @@ jobs:
 
       - name: Deploy to Azure Container Apps
         run: |
-          echo "Deploying to Azure Container Apps"
-          az containerapp update \
+          echo "Deploying to Azure Container Apps (Recreate)"
+          az containerapp create \
             --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --image alexitmcaf/react-test:build-${{ github.sha }} \
-            --registry-login-server index.docker.io \
+            --registry-server index.docker.io \
             --registry-username ${{ secrets.DOCKER_USERNAME }} \
             --registry-password ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
